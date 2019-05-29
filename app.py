@@ -1,4 +1,5 @@
 from flask import Flask
+import json
 import random
 app = Flask(__name__)
 
@@ -17,6 +18,33 @@ promotions = [
     "Сегодня скидка 10% по промокоду summer",
     "Удваиваем все пиццы по промокоду udodopizza"
 ]
+
+promocodes = [
+    {"code": "stepik", "discount": 25},
+    {"code": "delivery", "discount": 10},
+    {"code": "doubletrouble", "discount": 50},
+    {"code": "illbeback ", "discount": 25},
+    {"code": "libertyordeath  ", "discount": 100},
+    {"code": "summer", "discount": 10},
+    {"code": "pleaselpease  ", "discount": 5}
+]
+
+meals = [{
+ "title": "Chinken",
+ "id": 1,
+ "available": True,
+ "picture": "",
+ "price": 20.0,
+ "category": 1
+}, {
+ "title": "Milk",
+ "id": 2,
+ "available": True,
+ "picture": "",
+ "price": 10.0,
+ "category": 1
+}]
+
 
 
 @app.route("/")
@@ -45,13 +73,14 @@ def promotion():
 
 @app.route("/promo/<codes>")
 def checkpromo(codes):
-    if codes == 'promocode':
-        return '{"valid":true, "discount": 15}'
-    elif codes == 'summer':
-        return '{"valid":true, "discount": 10}'
-    elif codes == 'pleaseplease':
-        return '{"valid":true, "discount": 5}'
-    else:
-        return '{"valid":false,"discount":0}'
+    for promocode in promocodes:
+        if promocode["code"] == codes.lower():
+            return json.dumps({"valid": True, "discount": promocode['discount']})
+    return json.dumps({"valid": False})
+
+
+@app.route("/meals")
+def meals_route():
+    return json.dumps(meals)
 
 app.run("0.0.0.0", 8000)
