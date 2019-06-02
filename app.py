@@ -54,10 +54,11 @@ def hello():
 
 @app.route("/alive")
 def alive():
-    if stepik_alive == True:
-        return '{"alive": true}'
-    else:
-        return '{"alive": false}'
+    config_file = open('config.json', 'r')
+    config_content = config_file.read()
+    data = json.loads(config_content)
+    config_file.close()
+    return json.dumps(data)
 
 
 @app.route("/workhours")
