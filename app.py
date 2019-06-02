@@ -3,6 +3,8 @@ import json
 import random
 app = Flask(__name__)
 
+USER_ID = "1"
+
 promotion_text = "Сегодня скидка 15% по промокоду stepik"
 
 promocode = "stepik"
@@ -63,9 +65,20 @@ def promotion():
 def checkpromo(codes):
     promos_file = open('promo.json', 'r')
     promocodes = json.loads(promos_file.read())
-    
+
     for promocode in promocodes:
         if promocode["code"] == codes.lower():
+
+            users_file_r = open('users.json', 'r')
+            users_data = json.loads(users_file_r.read())
+            users_file_r.close()
+
+            users_data[USER_ID]["promocode"] = codes
+
+            users_file_w = open('users.json', 'w')
+            users_file_w.write(json.dumps(users_data))
+            users_file_w.close()
+
             return json.dumps({"valid": True, "discount": promocode['discount']})
     return json.dumps({"valid": False})
 
