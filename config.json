@@ -1,5 +1,9 @@
 {
-  "alive": true
+  "alive": true,
+  "workhours": {
+    "opens": "10:00",
+    "closes": "22:00"
+  }
 
 
 }
