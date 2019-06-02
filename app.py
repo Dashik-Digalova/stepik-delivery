@@ -5,28 +5,6 @@ app = Flask(__name__)
 
 USER_ID = "1"
 
-promotion_text = "Сегодня скидка 15% по промокоду stepik"
-
-promocode = "stepik"
-
-
-meals = [{
- "title": "Chinken",
- "id": 1,
- "available": True,
- "picture": "",
- "price": 20.0,
- "category": 1
-}, {
- "title": "Milk",
- "id": 2,
- "available": True,
- "picture": "",
- "price": 10.0,
- "category": 1
-}]
-
-
 
 @app.route("/")
 def hello():
@@ -85,6 +63,9 @@ def checkpromo(code):
 
 @app.route("/meals")
 def meals_route():
+    meals_file = open('meal.json', 'r')
+    meals = json.loads(meals_file.read())
+
     users_file_r = open('users.json', 'r')
     users_data = json.loads(users_file_r.read())
     users_file_r.close()
