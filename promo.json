@@ -1,0 +1,9 @@
+[
+    {"code": "stepik", "discount": 25},
+    {"code": "delivery", "discount": 10},
+    {"code": "doubletrouble", "discount": 50},
+    {"code": "illbeback ", "discount": 25},
+    {"code": "libertyordeath  ", "discount": 100},
+    {"code": "summer", "discount": 10},
+    {"code": "pleaselpease  ", "discount": 5}
+]

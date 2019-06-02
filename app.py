@@ -8,16 +8,6 @@ promotion_text = "Сегодня скидка 15% по промокоду stepik
 promocode = "stepik"
 
 
-promocodes = [
-    {"code": "stepik", "discount": 25},
-    {"code": "delivery", "discount": 10},
-    {"code": "doubletrouble", "discount": 50},
-    {"code": "illbeback ", "discount": 25},
-    {"code": "libertyordeath  ", "discount": 100},
-    {"code": "summer", "discount": 10},
-    {"code": "pleaselpease  ", "discount": 5}
-]
-
 meals = [{
  "title": "Chinken",
  "id": 1,
@@ -71,6 +61,9 @@ def promotion():
 
 @app.route("/promo/<codes>")
 def checkpromo(codes):
+    promos_file = open('promo.json', 'r')
+    promocodes = json.loads(promos_file.read())
+    
     for promocode in promocodes:
         if promocode["code"] == codes.lower():
             return json.dumps({"valid": True, "discount": promocode['discount']})
