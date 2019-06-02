@@ -61,19 +61,19 @@ def promotion():
     return json.dumps(promotions[promotion_number], ensure_ascii=False)
 
 
-@app.route("/promo/<codes>")
-def checkpromo(codes):
+@app.route("/promo/<code>")
+def checkpromo(code):
     promos_file = open('promo.json', 'r')
     promocodes = json.loads(promos_file.read())
 
     for promocode in promocodes:
-        if promocode["code"] == codes.lower():
+        if promocode["code"] == code.lower():
 
             users_file_r = open('users.json', 'r')
             users_data = json.loads(users_file_r.read())
             users_file_r.close()
 
-            users_data[USER_ID]["promocode"] = codes
+            users_data[USER_ID]["promocode"] = code
 
             users_file_w = open('users.json', 'w')
             users_file_w.write(json.dumps(users_data))
@@ -85,6 +85,26 @@ def checkpromo(codes):
 
 @app.route("/meals")
 def meals_route():
+    users_file_r = open('users.json', 'r')
+    users_data = json.loads(users_file_r.read())
+    users_file_r.close()
+
+    discount = 0
+
+    promocode = users_data[USER_ID]["promocode"]
+
+    if promocode != None:
+        promos_file = open('promo.json', 'r')
+        promocodes = json.loads(promos_file.read())
+        promos_file.close()
+
+        for p in promocodes:
+            if p ['code'] == promocode:
+                discount = p['discount']
+
+        for meal in meals:
+            meal['price'] = (1.0 - discount/100) * meal['price']
+
     return json.dumps(meals)
 
 app.run("0.0.0.0", 8000)
