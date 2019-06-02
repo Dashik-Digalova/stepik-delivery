@@ -3,21 +3,10 @@ import json
 import random
 app = Flask(__name__)
 
-
-stepik_alive = True
-
-workhours_opens = "10:00"
-workhours_closes = "22:00"
-
 promotion_text = "Сегодня скидка 15% по промокоду stepik"
 
 promocode = "stepik"
 
-promotions = [
-    "Сегодня скидка 15% по промокоду stepik",
-    "Сегодня скидка 10% по промокоду summer",
-    "Удваиваем все пиццы по промокоду udodopizza"
-]
 
 promocodes = [
     {"code": "stepik", "discount": 25},
@@ -75,7 +64,9 @@ def workhours():
 @app.route("/promotion")
 def promotion():
     promotion_number = random.randint(0, 2)
-    return '{"promotion": "'+promotions[promotion_number]+'"}'
+    promotion_file = open("promotions.json", "r")
+    promotions = json.loads(promotion_file.read())
+    return json.dumps(promotions[promotion_number], ensure_ascii=False)
 
 
 @app.route("/promo/<codes>")
