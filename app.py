@@ -34,7 +34,7 @@ def workhours():
 @app.route("/promotion")
 def promotion():
     promotion_number = random.randint(0, 2)
-    promotion_file = open("promotions.json", "r")
+    promotion_file = open("promotions.json", "r", encoding="utf-8")
     promotions = json.loads(promotion_file.read())
     return json.dumps(promotions[promotion_number], ensure_ascii=False)
 

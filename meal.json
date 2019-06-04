@@ -1,19 +1,19 @@
 [
-  {"meal": {
+  {
     "title": "Chinken",
     "id": 1,
-    "available": True,
+    "available": true,
     "picture": "",
     "price": 20.0,
     "category": 1
-  }},
-  {"meal": {
+  },
+  {
     "title": "Milk",
     "id": 2,
-    "available": True,
+    "available": true,
     "picture": "",
     "price": 10.0,
     "category": 1
-}}
+}
 ]
 
