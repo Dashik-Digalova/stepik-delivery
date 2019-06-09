@@ -154,4 +154,16 @@ def activeorders():
     return "", 404
 
 
+@app.route("/orders/<order_id>", methods=["DELETE"])
+def one_order(order_id):
+    orders_data = read_file("orders.json")
+    for saved_order_id in orders_data:
+        order = orders_data[saved_order_id]
+        if saved_order_id == order_id and order['user_id'] == USER_ID:
+            orders_data[saved_order_id]['status'] = 'canseled'
+            write_file('orders.json', orders_data)
+            return json.dumps({'order_id': order_id, "status": "canseled"})
+    return "", 404
+
+
 app.run("0.0.0.0", 8000)
