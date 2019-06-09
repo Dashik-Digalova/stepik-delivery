@@ -142,4 +142,16 @@ def orders():
 
         return json.dumps({'order_id': new_order_id, "status": new_order['status']})
 
+
+@app.route ("/activeorder")
+def activeorders():
+    orders_data = read_file('orders.json')
+    user_orders = []
+    for order_id in orders_data:
+        order = orders_data[order_id]
+        if order["user_id"] == USER_ID and order['status'] == 'accepted':
+            return json.dumps(order)
+    return "", 404
+
+
 app.run("0.0.0.0", 8000)
