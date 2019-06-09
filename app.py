@@ -98,7 +98,12 @@ def meals_route():
 @app.route("/orders", methods = ["GET", "POST"])
 def orders():
     if request.method == "GET":
-        pass
+        orders_data = read_file('orders.json')
+        user_orders = []
+        for order_id in orders_data:
+            if orders_data[order_id]["user_id"] == USER_ID:
+                user_orders.append(orders_data[order_id])
+        return json.dumps(user_orders)
     elif request.method == "POST":
         raw_data = request.data.decode('utf-8')
         data = json.loads(raw_data)
@@ -126,7 +131,7 @@ def orders():
         new_order = {
             "id": new_order_id,
             "meals": data['meals'],
-            "sum": summ,
+            "summ": summ,
             "status": "accepted",
             "user_id": USER_ID
         }
