@@ -1,3 +1,5 @@
+import sqlite3
+import os
 from flask import Flask
 from flask import request
 from flask_cors import CORS
@@ -5,12 +7,105 @@ import json
 import random
 import uuid
 
+from twilio.rest import Client
+
 
 app = Flask(__name__)
 CORS(app)
 
 
 USER_ID = "1"
+
+
+def get_cursor():
+    connection = sqlite3.connect("database.db")
+    c = connection.cursor()
+    return c
+
+
+def init_db():
+    c = get_cursor()
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS meals(
+        id integer PRIMARY KEY,
+        title text,
+        availabe integer,
+        picture text,
+        price real,
+        category integer
+    )
+    """)
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS promocodes(
+        id integer PRIMARY KEY,
+        code text,
+        discount real
+    )
+    """)
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS users(
+        id integer PRIMARY KEY,
+        promocode text
+    )
+    """)
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS workhours(
+        opens text,
+        closes text
+    )
+    """)
+
+    c.execute("""
+    INSERT INTO meals VALUES (1, "Chinken", 1, "", 20.0, 1)
+    """)
+
+    c.execute("""
+    INSERT INTO meals VALUES (2, "Milk", 1, "", 10.0, 1)
+    """)
+
+    c.execute("""
+    INSERT INTO promocodes VALUES (1, "stepik", 25.0)
+    """)
+
+    c.execute("""
+    INSERT INTO promocodes VALUES (2, "delivery", 10.0)
+    """)
+
+    c.execute("""
+    INSERT INTO promocodes VALUES (3, "doubletrouble", 50.0)
+    """)
+
+    c.execute("""
+    INSERT INTO promocodes VALUES (4, "illbeback", 25.0)
+    """)
+
+    c.execute("""
+    INSERT INTO promocodes VALUES (5, "libertyordeath", 100.0)
+    """)
+
+    c.execute("""
+    INSERT INTO promocodes VALUES (6, "summer", 10.0)
+    """)
+
+    c.execute("""
+    INSERT INTO promocodes VALUES (7, "pleaselpease", 5.0)
+    """)
+
+    c.execute("""
+    INSERT INTO users VALUES (1, null)
+    """)
+
+    c.execute("""
+    INSERT INTO workhours VALUES ("10:00", "22:00")
+    """)
+
+    c.connection.commit()
+    c.connection.close()
+
+
 
 
 def read_file(filename):
@@ -42,9 +137,19 @@ def alive():
 
 @app.route("/workhours")
 def workhours():
-    data = read_file('config.json')
+#    data = read_file('config.json')
 
-    return json.dumps(data['workhours'])
+#    return json.dumps(data['workhours'])
+    c = get_cursor()
+
+    workhours = []
+    for work_hours in c.execute("""SELECT * FROM workhours"""):
+        open, close = work_hours
+        workhours.append({
+            'opens': open,
+            'closes': close
+        })
+    return json.dumps(workhours)
 
 
 @app.route("/promotion")
@@ -56,42 +161,55 @@ def promotion():
 
 @app.route("/promo/<code>")
 def checkpromo(code):
-    promocodes = read_file('promo.json')
+    c = get_cursor()
+    c.execute("""
+    SELECT * FROM promocodes WHERE code = ?
+    """, [code])
+    result = c.fetchone()
+    if result is None:
+        return json.dumps({'valid': False})
 
-    for promocode in promocodes:
-        if promocode["code"] == code.lower():
-
-            users_data = read_file('users.json')
-
-            users_data[USER_ID]["promocode"] = code
-
-            write_file('users.json', users_data)
-
-            return json.dumps({"valid": True, "discount": promocode['discount']})
-    return json.dumps({"valid": False})
+    promo_id, promo_code, promo_discount = result
+    c.execute("""
+    UPDATE users
+    SET promocode = ?
+    WHERE id = ?
+    """, (promo_code, int(USER_ID)))
+    c.connection.commit()
+    c.connection.close()
+    return json.dumps({'valid': True, "discount": promo_discount})
 
 
 @app.route("/meals")
 def meals_route():
-    meals = read_file('meal.json')
+    c = get_cursor()
 
-    users_data = read_file('users.json')
+    c.execute("""
+    SELECT discount
+    FROM promocodes
+    WHERE code = (
+        SELECT promocode
+        FROM users
+        WHERE ID = ?   
+    )    
+    """, (int(USER_ID),))
+    result = c.fetchone()
 
     discount = 0
+    if result is not None:
+        discount = result[0]
 
-    promocode = users_data[USER_ID]["promocode"]
-
-
-    if promocode != None:
-        promocodes = read_file('promo.json')
-
-        for p in promocodes:
-            if p ['code'] == promocode:
-                discount = p['discount']
-
-        for meal in meals:
-            meal['price'] = (1.0 - discount/100) * meal['price']
-
+    meals = []
+    for meals_info in c.execute("""SELECT * FROM meals"""):
+        meals_id, title, available, picture, price, category = meals_info
+        meals.append({
+            'id': meals_id,
+            'title': title,
+            'available': bool(available),
+            'picture': picture,
+            'price': price * (1.0 - discount/100),
+            'category': category
+        })
     return json.dumps(meals)
 
 
@@ -143,6 +261,23 @@ def orders():
         return json.dumps({'order_id': new_order_id, "status": new_order['status']})
 
 
+
+@app.route("/notification")
+def notif():
+    sms_client = Client(
+        "ACdde47e05e1dbd50be661f7b96fd0a414",
+        "ce7fca4a6cd8211d2d84ef849138795a"
+    )
+
+    message = sms_client.messages.create(
+        body = "New order is accepted",
+        from_ = "+1858281020(9)",
+        to = "+79045181316"
+    )
+
+    return json.dumps({"status": True})
+
+
 @app.route ("/activeorder")
 def activeorders():
     orders_data = read_file('orders.json')
@@ -164,6 +299,10 @@ def one_order(order_id):
             write_file('orders.json', orders_data)
             return json.dumps({'order_id': order_id, "status": "canseled"})
     return "", 404
+
+
+if not os.path.exists("database.db"):
+    init_db()
 
 
 app.run("0.0.0.0", 8000)
