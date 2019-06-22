@@ -6,6 +6,8 @@ from flask_cors import CORS
 import json
 import random
 import uuid
+import urllib
+import requests
 
 from twilio.rest import Client
 
@@ -27,7 +29,7 @@ def init_db():
     c = get_cursor()
     c.execute("""
     CREATE TABLE IF NOT EXISTS meals(
-        id integer PRIMARY KEY,
+        id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
         title text,
         availabe integer,
         picture text,
@@ -56,14 +58,6 @@ def init_db():
         opens text,
         closes text
     )
-    """)
-
-    c.execute("""
-    INSERT INTO meals VALUES (1, "Chinken", 1, "", 20.0, 1)
-    """)
-
-    c.execute("""
-    INSERT INTO meals VALUES (2, "Milk", 1, "", 10.0, 1)
     """)
 
     c.execute("""
@@ -106,6 +100,28 @@ def init_db():
     c.connection.close()
 
 
+def fill_database():
+    api_key = "f96f947346e0439bf62117elc291e685"
+    key_words = "cake"
+    c = get_cursor()
+
+    page = 1
+    params = {"key": api_key, "q": key_words, 'page': page}
+    url_string = 'https://www.food2fork.com/api/search?' + urllib.parse.urlencode(params)
+    r = requests.get(url_string)
+    data = r.json()
+    for item in data['recepies']:
+        c.execute("""
+        INSERT INTO meals (title, available, picture, price, category) VALUES (?, ?, ?, ?, ?)
+        """, [
+            item['title'],
+            1,
+            item['image_url'],
+            item['social_rank'] + random.randint(0, 100),
+            1
+        ])
+        c.connection.commit()
+    c.connection.close()
 
 
 def read_file(filename):
@@ -303,6 +319,7 @@ def one_order(order_id):
 
 if not os.path.exists("database.db"):
     init_db()
+    fill_database()
 
 
 app.run("0.0.0.0", 8000)
