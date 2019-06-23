@@ -31,7 +31,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS meals(
         id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
         title text,
-        availabe integer,
+        available integer,
         picture text,
         price real,
         category integer
@@ -92,35 +92,31 @@ def init_db():
     INSERT INTO users VALUES (1, null)
     """)
 
-    c.execute("""
-    INSERT INTO workhours VALUES ("10:00", "22:00")
-    """)
-
     c.connection.commit()
     c.connection.close()
 
 
 def fill_database():
-    api_key = "f96f947346e0439bf62117elc291e685"
+    api_key = "3f2ee35f02fdaf80453bfb0ffc81aba6"
     key_words = "cake"
     c = get_cursor()
 
-    page = 1
-    params = {"key": api_key, "q": key_words, 'page': page}
-    url_string = 'https://www.food2fork.com/api/search?' + urllib.parse.urlencode(params)
-    r = requests.get(url_string)
-    data = r.json()
-    for item in data['recepies']:
-        c.execute("""
-        INSERT INTO meals (title, available, picture, price, category) VALUES (?, ?, ?, ?, ?)
-        """, [
-            item['title'],
-            1,
-            item['image_url'],
-            item['social_rank'] + random.randint(0, 100),
-            1
-        ])
-        c.connection.commit()
+    for page in range (1, 4):
+        params = {"key": api_key, "q": key_words, 'page': page}
+        url_string = 'https://www.food2fork.com/api/search?' + urllib.parse.urlencode(params)
+        r = requests.get(url_string)
+        data = r.json()
+        for item in data['recipes']:
+            c.execute("""
+            INSERT INTO meals (title, available, picture, price, category) VALUES (?, ?, ?, ?, ?)
+            """, [
+                item['title'],
+                1,
+                item['image_url'],
+                item['social_rank'] + random.randint(0, 100),
+                1
+            ])
+            c.connection.commit()
     c.connection.close()
 
 
@@ -153,19 +149,10 @@ def alive():
 
 @app.route("/workhours")
 def workhours():
-#    data = read_file('config.json')
+    data = read_file('config.json')
 
-#    return json.dumps(data['workhours'])
-    c = get_cursor()
+    return json.dumps(data['workhours'])
 
-    workhours = []
-    for work_hours in c.execute("""SELECT * FROM workhours"""):
-        open, close = work_hours
-        workhours.append({
-            'opens': open,
-            'closes': close
-        })
-    return json.dumps(workhours)
 
 
 @app.route("/promotion")
