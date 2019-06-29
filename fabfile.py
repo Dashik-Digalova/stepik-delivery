@@ -3,7 +3,7 @@ from fabric import Connection, Config, task
 @task
 def deploy(c):
     remote_user = 'root'
-    remote_password = ''
+    remote_password = 'kuku'
     remote_host = '165.22.105.187'
 
     config = Config(overrides={'sudo': {'password': remote_password}})
