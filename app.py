@@ -9,7 +9,7 @@ import uuid
 import urllib
 import requests
 
-from twilio.rest import Client
+#from twilio.rest import Client
 
 
 app = Flask(__name__)
@@ -268,8 +268,7 @@ def orders():
 @app.route("/notification")
 def notif():
     sms_client = Client(
-        "ACdde47e05e1dbd50be661f7b96fd0a414",
-        "ce7fca4a6cd8211d2d84ef849138795a"
+
     )
 
     message = sms_client.messages.create(
@@ -309,4 +308,4 @@ if not os.path.exists("database.db"):
     fill_database()
 
 
-app.run("0.0.0.0", 8000)
+app.run("0.0.0.0", 9000)
